@@ -23,10 +23,7 @@
           version = "0.1.0";
           src = ./.;
 
-          # Le vendorHash sera calculé après le premier build
-          # Utilise "null" si tu veux que Nix télécharge les dépendances à chaque fois
-          # ou exécute une première fois pour obtenir le hash correct
-          vendorHash = null;
+          vendorHash = "sha256-nlaO32vKmi3QVp9rZ8UCn5LIfBhLlkkiYMvuRVRK+BQ=";
 
           meta = with pkgs.lib; {
             description = "A simple Markdown file server written in Go";
@@ -41,8 +38,8 @@
             # Go development
             go
             gopls
-            gotools       # goimports, godoc, etc.
-            go-tools      # staticcheck, etc.
+            gotools # goimports, godoc, etc.
+            go-tools # staticcheck, etc.
 
             # Build tools
             just
