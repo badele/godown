@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/badele/godown/compare/v1.0.0...v1.0.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* vendoring hash ([97b6640](https://github.com/badele/godown/commit/97b6640b456db21f25bea9346f4f9c74896c3865))
+* vendoring hash ([97b6640](https://github.com/badele/godown/commit/97b6640b456db21f25bea9346f4f9c74896c3865))
+* vendoring hash ([f88c4bb](https://github.com/badele/godown/commit/f88c4bbb76ed83fc91d0b62fc9717cb0e1340b48))
+
 ## 1.0.0 (2025-10-18)
 
 
