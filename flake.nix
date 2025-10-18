@@ -20,7 +20,7 @@
       {
         packages.default = pkgs.buildGoModule {
           pname = "godown";
-          version = "0.1.0";
+          version = "1.0.1";
           src = ./.;
 
           vendorHash = "sha256-nlaO32vKmi3QVp9rZ8UCn5LIfBhLlkkiYMvuRVRK+BQ=";

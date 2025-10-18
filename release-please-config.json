@@ -4,7 +4,14 @@
     ".": {
       "package-name": "godown",
       "changelog-path": "CHANGELOG.md",
-      "include-component-in-tag": false
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "flake.nix",
+          "glob": false
+        }
+      ]
     }
   },
   "changelog-sections": [
