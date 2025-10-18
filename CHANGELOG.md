@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/badele/godown/compare/v1.1.1...v1.1.2) (2025-10-18)
+
+
+### Bug Fixes
+
+* flake package ([#10](https://github.com/badele/godown/issues/10)) ([e4e6b8f](https://github.com/badele/godown/commit/e4e6b8fab1fc2d7c5f2a4ad31863fc010c1fa4f2))
+
 ## [1.1.1](https://github.com/badele/godown/compare/v1.1.0...v1.1.1) (2025-10-18)
 
 
