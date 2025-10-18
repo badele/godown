@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/badele/godown/compare/v1.1.2...v1.1.3) (2025-10-18)
+
+
+### Bug Fixes
+
+* build tools ([#12](https://github.com/badele/godown/issues/12)) ([769e5ac](https://github.com/badele/godown/commit/769e5acfaf907004c373a9dff86d56445b2fe171))
+
 ## [1.1.2](https://github.com/badele/godown/compare/v1.1.1...v1.1.2) (2025-10-18)
 
 
