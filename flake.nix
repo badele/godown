@@ -32,7 +32,10 @@
         };
       in
       {
-        packages.default = godown;
+        packages = {
+          default = godown;
+          godown = godown;
+        };
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
