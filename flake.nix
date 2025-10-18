@@ -16,9 +16,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        packages.default = pkgs.buildGoModule {
+        godown = pkgs.buildGoModule {
           pname = "godown";
           version = "1.0.1";
           src = ./.;
@@ -32,6 +30,9 @@
             maintainers = [ ];
           };
         };
+      in
+      {
+        packages.default = godown;
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
@@ -49,6 +50,8 @@
 
             # Docker linting
             hadolint
+
+            godown
           ];
 
           shellHook = ''
