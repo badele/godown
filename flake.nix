@@ -16,7 +16,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        godown = pkgs.buildGo125Module {
+        godown = pkgs.buildGoModule {
           pname = "godown";
           version = "1.0.1";
           src = ./.;
