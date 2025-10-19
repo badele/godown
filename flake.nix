@@ -18,7 +18,9 @@
         pkgs = nixpkgs.legacyPackages.${system};
         godown = pkgs.buildGoModule {
           pname = "godown";
+          # x-release-please-start-version
           version = "1.0.1";
+          # x-release-please-end
           src = ./.;
 
           vendorHash = "sha256-nlaO32vKmi3QVp9rZ8UCn5LIfBhLlkkiYMvuRVRK+BQ=";
