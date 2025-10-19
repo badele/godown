@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/badele/godown/compare/v1.1.5...v1.1.6) (2025-10-19)
+
+
+### Bug Fixes
+
+* release-please v2 ([773e9d8](https://github.com/badele/godown/commit/773e9d8a520a02f2d2681b21558faca9628c6ee4))
+
 ## [1.1.5](https://github.com/badele/godown/compare/v1.1.4...v1.1.5) (2025-10-19)
 
 
