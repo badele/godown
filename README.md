@@ -1,7 +1,8 @@
 # godown
 
 A lightweight, standalone Markdown server with embedded dark mode support. Serve
-your Markdown documentation as beautiful HTML with zero dependencies.
+your Markdown documentation as beautiful HTML with zero dependencies. Perfect
+for previewing documentation locally before committing to your repository.
 
 ## Features
 
