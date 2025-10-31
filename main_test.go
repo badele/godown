@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// Test de la conversion Markdown vers HTML
+// Test Markdown to HTML conversion
 func TestMdToHTML(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -54,7 +54,7 @@ func TestMdToHTML(t *testing.T) {
 	}
 }
 
-// Test de la détection des fichiers média
+// Test media file detection
 func TestIsMediaFile(t *testing.T) {
 	tests := []struct {
 		path     string
@@ -82,7 +82,7 @@ func TestIsMediaFile(t *testing.T) {
 	}
 }
 
-// Test du Content-Type
+// Test Content-Type detection
 func TestGetContentType(t *testing.T) {
 	tests := []struct {
 		path     string
@@ -108,9 +108,9 @@ func TestGetContentType(t *testing.T) {
 	}
 }
 
-// Test du serveur CSS avec style embarqué
+// Test CSS server with embedded style
 func TestServeCSSEmbedded(t *testing.T) {
-	// Réinitialiser customStylePath pour utiliser le CSS embarqué
+	// Reset customStylePath to use embedded CSS
 	oldPath := customStylePath
 	customStylePath = ""
 	defer func() { customStylePath = oldPath }()
@@ -139,9 +139,9 @@ func TestServeCSSEmbedded(t *testing.T) {
 	}
 }
 
-// Test du serveur CSS avec fichier externe
+// Test CSS server with external file
 func TestServeCSSCustom(t *testing.T) {
-	// Créer un fichier CSS temporaire
+	// Create a temporary CSS file
 	tmpDir := t.TempDir()
 	cssFile := filepath.Join(tmpDir, "custom.css")
 	cssContent := "body { color: red; }"
@@ -149,7 +149,7 @@ func TestServeCSSCustom(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Configurer customStylePath
+	// Configure customStylePath
 	oldPath := customStylePath
 	customStylePath = cssFile
 	defer func() { customStylePath = oldPath }()
@@ -170,9 +170,9 @@ func TestServeCSSCustom(t *testing.T) {
 	}
 }
 
-// Test du serveur CSS avec fichier inexistant (fallback)
+// Test CSS server with nonexistent file (fallback)
 func TestServeCSSFallback(t *testing.T) {
-	// Configurer un chemin vers un fichier inexistant
+	// Configure path to nonexistent file
 	oldPath := customStylePath
 	customStylePath = "/nonexistent/file.css"
 	defer func() { customStylePath = oldPath }()
@@ -187,16 +187,16 @@ func TestServeCSSFallback(t *testing.T) {
 		t.Errorf("serveCSS() status = %v, want %v", resp.StatusCode, http.StatusOK)
 	}
 
-	// Devrait utiliser le CSS embarqué
+	// Should use embedded CSS
 	body := w.Body.String()
 	if !strings.Contains(body, ":root") {
 		t.Errorf("serveCSS() should fallback to embedded CSS")
 	}
 }
 
-// Test du serveur de médias
+// Test media file server
 func TestServeMedia(t *testing.T) {
-	// Créer un fichier image temporaire
+	// Create temporary image file
 	tmpDir := t.TempDir()
 	imgFile := filepath.Join(tmpDir, "test.png")
 	imgContent := []byte("fake png content")
@@ -204,7 +204,7 @@ func TestServeMedia(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Changer le répertoire de travail temporairement
+	// Temporarily change working directory
 	oldWd, _ := os.Getwd()
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
@@ -230,9 +230,9 @@ func TestServeMedia(t *testing.T) {
 	}
 }
 
-// Test du serveur Markdown
+// Test Markdown server
 func TestServeMarkdown(t *testing.T) {
-	// Créer un fichier markdown temporaire
+	// Create temporary markdown file
 	tmpDir := t.TempDir()
 	mdFile := filepath.Join(tmpDir, "README.md")
 	mdContent := "# Test\n\nHello **world**"
@@ -240,12 +240,12 @@ func TestServeMarkdown(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Changer le répertoire de travail temporairement
+	// Temporarily change working directory
 	oldWd, _ := os.Getwd()
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	// Configurer l'indexFile
+	// Configure indexFile
 	oldIndex := indexFile
 	indexFile = "README.md"
 	defer func() { indexFile = oldIndex }()
@@ -277,7 +277,7 @@ func TestServeMarkdown(t *testing.T) {
 	}
 }
 
-// Test de la configuration via variables d'environnement
+// Test configuration via environment variables
 func TestEnvironmentVariables(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -311,14 +311,14 @@ func TestEnvironmentVariables(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Sauvegarder l'ancienne valeur
+			// Save old value
 			oldValue := os.Getenv(tt.envKey)
 			defer os.Setenv(tt.envKey, oldValue)
 
-			// Définir la nouvelle valeur
+			// Set new value
 			os.Setenv(tt.envKey, tt.envValue)
 
-			// Vérifier que la variable d'environnement est bien définie
+			// Check that environment variable is properly set
 			result := os.Getenv(tt.envKey)
 			if result != tt.expected {
 				t.Errorf("os.Getenv(%v) = %v, want %v", tt.envKey, result, tt.expected)
@@ -327,16 +327,242 @@ func TestEnvironmentVariables(t *testing.T) {
 	}
 }
 
-// Test de la priorité des variables d'environnement vs flags
+// Test text file detection
+func TestIsTextFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	tests := []struct {
+		name     string
+		content  []byte
+		expected bool
+	}{
+		{
+			name:     "Plain text file",
+			content:  []byte("Hello world\nThis is text\n"),
+			expected: true,
+		},
+		{
+			name:     "Text with UTF-8 characters",
+			content:  []byte("Bonjour le monde! éàç ûî ô\n"),
+			expected: true,
+		},
+		{
+			name:     "Binary file with null bytes",
+			content:  []byte{0x00, 0x01, 0x02, 0x03},
+			expected: false,
+		},
+		{
+			name:     "Binary file with control characters",
+			content:  []byte{0x7F, 0xEF, 0x01, 0x02},
+			expected: false,
+		},
+		{
+			name:     "Empty file",
+			content:  []byte{},
+			expected: true,
+		},
+		{
+			name:     "Text with tabs and newlines",
+			content:  []byte("Line 1\tTab\nLine 2\r\nLine 3"),
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create temporary file
+			tmpFile := filepath.Join(tmpDir, tt.name)
+			if err := os.WriteFile(tmpFile, tt.content, 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			result := isTextFile(tmpFile)
+			if result != tt.expected {
+				t.Errorf("isTextFile(%v) = %v, want %v", tt.name, result, tt.expected)
+			}
+		})
+	}
+}
+
+// Test hexadecimal formatting
+func TestFormatBinaryAsHex(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		contains []string
+	}{
+		{
+			name:  "Simple binary data",
+			input: []byte{0x00, 0x41, 0x42, 0x43},
+			contains: []string{
+				"00000000", // offset
+				"41 42 43", // hex bytes
+				"ABC",      // ASCII representation
+			},
+		},
+		{
+			name:  "HTML special characters",
+			input: []byte{'<', '>', '&', '"', 'A'},
+			contains: []string{
+				"3c 3e 26 22 41", // hex values: < > & " A
+				"&lt;",           // escaped <
+				"&gt;",           // escaped >
+				"&amp;",          // escaped &
+			},
+		},
+		{
+			name:  "Full line (16 bytes)",
+			input: []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F},
+			contains: []string{
+				"00000000",
+				"00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f",
+			},
+		},
+		{
+			name:  "Multiple lines",
+			input: make([]byte, 32), // 32 bytes = 2 lines
+			contains: []string{
+				"00000000", // first line
+				"00000010", // second line
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatBinaryAsHex(tt.input)
+			for _, expected := range tt.contains {
+				if !strings.Contains(result, expected) {
+					t.Errorf("formatBinaryAsHex() result should contain %q, got:\n%s", expected, result)
+				}
+			}
+		})
+	}
+}
+
+// Test byte size formatting
+func TestFormatBytes(t *testing.T) {
+	tests := []struct {
+		input    int64
+		expected string
+	}{
+		{0, "0"},
+		{500, "500"},
+		{1023, "1023"},
+		{1024, "1.0 KB"},
+		{1536, "1.5 KB"},
+		{1048576, "1.0 MB"},
+		{1073741824, "1.0 GB"},
+		{1099511627776, "1.0 TB"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			result := formatBytes(tt.input)
+			if result != tt.expected {
+				t.Errorf("formatBytes(%d) = %v, want %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
+// Test text file server
+func TestServeTextFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	txtFile := filepath.Join(tmpDir, "test.txt")
+	txtContent := "Hello world\nLine 2\nSpecial: <tag> & \"quotes\""
+	if err := os.WriteFile(txtFile, []byte(txtContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	req := httptest.NewRequest("GET", "/test.txt", nil)
+	w := httptest.NewRecorder()
+
+	serveTextFile(w, req, "test.txt")
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("serveTextFile() status = %v, want %v", resp.StatusCode, http.StatusOK)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType != "text/html; charset=utf-8" {
+		t.Errorf("serveTextFile() Content-Type = %v, want %v", contentType, "text/html; charset=utf-8")
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, "<pre") {
+		t.Errorf("serveTextFile() body should contain <pre> tag")
+	}
+	// Check HTML escaping
+	if !strings.Contains(body, "&lt;tag&gt;") {
+		t.Errorf("serveTextFile() should escape HTML tags")
+	}
+	if !strings.Contains(body, "&amp;") {
+		t.Errorf("serveTextFile() should escape ampersands")
+	}
+	if !strings.Contains(body, "/__godown_style.css") {
+		t.Errorf("serveTextFile() body should link to style")
+	}
+}
+
+// Test binary file server
+func TestServeBinaryFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	binFile := filepath.Join(tmpDir, "test.bin")
+	binContent := []byte{0x7F, 0x45, 0x4C, 0x46, 0x00, 0x01, 0x02, 0x03, 0x41, 0x42, 0x43}
+	if err := os.WriteFile(binFile, binContent, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	req := httptest.NewRequest("GET", "/test.bin", nil)
+	w := httptest.NewRecorder()
+
+	serveBinaryFile(w, req, "test.bin")
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("serveBinaryFile() status = %v, want %v", resp.StatusCode, http.StatusOK)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType != "text/html; charset=utf-8" {
+		t.Errorf("serveBinaryFile() Content-Type = %v, want %v", contentType, "text/html; charset=utf-8")
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, "test.bin") {
+		t.Errorf("serveBinaryFile() body should contain filename")
+	}
+	if !strings.Contains(body, "bytes") {
+		t.Errorf("serveBinaryFile() body should show file size")
+	}
+	if !strings.Contains(body, "00000000") {
+		t.Errorf("serveBinaryFile() body should contain hex offset")
+	}
+	if !strings.Contains(body, "/__godown_style.css") {
+		t.Errorf("serveBinaryFile() body should link to style")
+	}
+}
+
+// Test environment variables vs flags priority
 func TestConfigurationPriority(t *testing.T) {
-	// Test pour PORT
+	// Test for PORT
 	t.Run("PORT env takes precedence", func(t *testing.T) {
 		oldPort := os.Getenv("PORT")
 		defer os.Setenv("PORT", oldPort)
 
 		os.Setenv("PORT", "5000")
 
-		// Dans le code main, PORT env serait lu avant le flag
+		// In main code, PORT env would be read before flag
 		port := os.Getenv("PORT")
 		if port == "" {
 			port = "8080" // flag default
@@ -347,7 +573,7 @@ func TestConfigurationPriority(t *testing.T) {
 		}
 	})
 
-	// Test pour INDEX
+	// Test for INDEX
 	t.Run("INDEX env takes precedence", func(t *testing.T) {
 		oldIndex := os.Getenv("INDEX")
 		defer os.Setenv("INDEX", oldIndex)
@@ -364,7 +590,7 @@ func TestConfigurationPriority(t *testing.T) {
 		}
 	})
 
-	// Test pour STYLE
+	// Test for STYLE
 	t.Run("STYLE env takes precedence", func(t *testing.T) {
 		oldStyle := os.Getenv("STYLE")
 		defer os.Setenv("STYLE", oldStyle)
@@ -381,7 +607,7 @@ func TestConfigurationPriority(t *testing.T) {
 		}
 	})
 
-	// Test avec variable d'environnement vide (flag devrait être utilisé)
+	// Test with empty environment variable (flag should be used)
 	t.Run("Flag used when env is empty", func(t *testing.T) {
 		oldPort := os.Getenv("PORT")
 		defer os.Setenv("PORT", oldPort)
