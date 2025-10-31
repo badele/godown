@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -173,6 +175,92 @@ func isMediaFile(path string) bool {
 	return false
 }
 
+// isTextFile checks if the file content appears to be text (UTF-8)
+func isTextFile(filePath string) bool {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	// Read the first 512 bytes to determine if it's text
+	buf := make([]byte, 512)
+	n, err := file.Read(buf)
+	if err != nil && err != io.EOF {
+		return false
+	}
+	buf = buf[:n]
+
+	// Check if the content is valid UTF-8
+	if !utf8.Valid(buf) {
+		return false
+	}
+
+	// Check for common binary indicators (null bytes, control characters)
+	for _, b := range buf {
+		// Allow common text characters:
+		// - printable ASCII (32-126)
+		// - tabs (9), newlines (10), carriage returns (13)
+		// - UTF-8 multi-byte characters (128-255)
+		if b == 0 || (b < 32 && b != 9 && b != 10 && b != 13) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// formatBinaryAsHex formats binary data in a hexdump-like format (similar to od -A x -t x1z)
+// It displays: offset | hex bytes (16 per line) | ASCII representation
+func formatBinaryAsHex(data []byte) string {
+	var result strings.Builder
+	const bytesPerLine = 16
+
+	result.WriteString("<div style=\"font-family: 'Courier New', monospace; font-size: 12px;\">\n")
+	result.WriteString("<div style=\"color: #666; margin-bottom: 8px;\">")
+	result.WriteString("Offset&nbsp;&nbsp; 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  ASCII</br>")
+	result.WriteString("--------  -----------------------------------------------  ----------------</div>\n")
+
+	for i := 0; i < len(data); i += bytesPerLine {
+		// Offset
+		result.WriteString(fmt.Sprintf("<div><span style=\"color: #0366d6;\">%08x</span>  ", i))
+
+		// Hex bytes
+		end := i + bytesPerLine
+		if end > len(data) {
+			end = len(data)
+		}
+
+		// Print hex values
+		for j := i; j < end; j++ {
+			result.WriteString(fmt.Sprintf("%02x ", data[j]))
+		}
+
+		// Pad if less than 16 bytes
+		for j := end; j < i+bytesPerLine; j++ {
+			result.WriteString("   ")
+		}
+
+		result.WriteString(" ")
+
+		// ASCII representation
+		for j := i; j < end; j++ {
+			b := data[j]
+			if b >= 32 && b <= 126 {
+				// Escape HTML special characters
+				result.WriteString(template.HTMLEscapeString(string(b)))
+			} else {
+				result.WriteString(".")
+			}
+		}
+
+		result.WriteString("</div>\n")
+	}
+
+	result.WriteString("</div>")
+	return result.String()
+}
+
 // getContentType returns the appropriate Content-Type for a file
 func getContentType(path string) string {
 	ext := strings.ToLower(filepath.Ext(path))
@@ -241,6 +329,95 @@ func serveMedia(w http.ResponseWriter, r *http.Request, filePath string) {
 	}
 }
 
+// serveTextFile serves a text file wrapped in HTML
+func serveTextFile(w http.ResponseWriter, r *http.Request, filePath string) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Escape HTML special characters to prevent XSS
+	escapedContent := template.HTMLEscapeString(string(content))
+
+	// Wrap the text content in a <pre> tag to preserve formatting
+	htmlContent := "<pre style=\"white-space: pre-wrap; word-wrap: break-word;\">" + escapedContent + "</pre>"
+
+	title := filepath.Base(filePath)
+
+	data := PageData{
+		Title:     title,
+		Content:   template.HTML(htmlContent),
+		StylePath: "/__godown_style.css",
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := tmpl.Execute(w, data); err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// serveBinaryFile serves a binary file with hexadecimal dump display
+func serveBinaryFile(w http.ResponseWriter, r *http.Request, filePath string) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Limit display to first 64KB for performance
+	const maxDisplaySize = 64 * 1024
+	displayContent := content
+	var truncated bool
+	if len(content) > maxDisplaySize {
+		displayContent = content[:maxDisplaySize]
+		truncated = true
+	}
+
+	// Format as hexdump
+	hexDump := formatBinaryAsHex(displayContent)
+
+	// Add file info header
+	fileInfo := fmt.Sprintf("<div style=\"margin-bottom: 20px; padding: 10px; background: var(--code-bg); border-radius: 5px; border: 1px solid var(--border-color);\">\n")
+	fileInfo += fmt.Sprintf("<strong>File:</strong> %s<br>\n", template.HTMLEscapeString(filepath.Base(filePath)))
+	fileInfo += fmt.Sprintf("<strong>Size:</strong> %s bytes", formatBytes(int64(len(content))))
+	if truncated {
+		fileInfo += fmt.Sprintf(" (showing first %s)", formatBytes(int64(len(displayContent))))
+	}
+	fileInfo += "\n</div>\n"
+
+	htmlContent := fileInfo + hexDump
+
+	title := filepath.Base(filePath) + " (binary)"
+
+	data := PageData{
+		Title:     title,
+		Content:   template.HTML(htmlContent),
+		StylePath: "/__godown_style.css",
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := tmpl.Execute(w, data); err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// formatBytes formats a byte count in human-readable format
+func formatBytes(bytes int64) string {
+	const unit = 1024
+	if bytes < unit {
+		return fmt.Sprintf("%d", bytes)
+	}
+	div, exp := int64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+}
+
 func serveMarkdown(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if path == "/" {
@@ -257,8 +434,22 @@ func serveMarkdown(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For markdown files
+	// Check if file exists with unknown extension
+	// If not a .md file, check if the file exists as-is
+	originalFilePath := filePath
 	if !strings.HasSuffix(path, ".md") {
+		// Check if file exists with original extension
+		if _, err := os.Stat(originalFilePath); err == nil {
+			// File exists, check if it's a text file
+			if isTextFile(originalFilePath) {
+				serveTextFile(w, r, originalFilePath)
+				return
+			}
+			// Not a text file, serve as binary with hex dump
+			serveBinaryFile(w, r, originalFilePath)
+			return
+		}
+		// File doesn't exist with original name, try with .md extension
 		path += ".md"
 		filePath = filepath.Join(".", path)
 	}
