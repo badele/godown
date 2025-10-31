@@ -19,7 +19,7 @@
         godown = pkgs.buildGoModule {
           pname = "godown";
           # x-release-please-start-version
-          version = "1.1.6";
+          version = "1.2.0";
           # x-release-please-end
           src = ./.;
 
