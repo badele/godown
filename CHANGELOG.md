@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/badele/godown/compare/v1.1.6...v1.2.0) (2025-10-31)
+
+
+### Features
+
+* add text file and binary file type ([#22](https://github.com/badele/godown/issues/22)) ([7e0a023](https://github.com/badele/godown/commit/7e0a02339a6f4dde7dbe20fa627d579e53574671))
+
+
+### Documentation
+
+* minor change ([#20](https://github.com/badele/godown/issues/20)) ([f96b64d](https://github.com/badele/godown/commit/f96b64dcd4c65de9aa17939e6c6e6fd4440e5737))
+
 ## [1.1.6](https://github.com/badele/godown/compare/v1.1.5...v1.1.6) (2025-10-19)
 
 
